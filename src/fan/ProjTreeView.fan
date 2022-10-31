@@ -7,6 +7,7 @@
 //
 using vaseGui
 using vaseGraphics
+using vaseWindow
 
 class ProjTreeView
 {
@@ -16,7 +17,9 @@ class ProjTreeView
   }
   
   Widget view() {
-    ResizePane {
+    Bool clickValid = true
+    
+    return ResizePane {
         layout.height = Layout.matchParent
         layout.width = 500
         padding = Insets(0, 15, 0, 0)
@@ -24,7 +27,20 @@ class ProjTreeView
         TreeView {
             model = ProjTreeModel()
             onSelected = |TreeItem item, Int clickType| {
-                frame.onSelectFile(item.node, clickType == 4)
+                //double click
+                if (clickType == 4) {
+                    frame.onSelectFile(item.node, true)
+                    clickValid = false
+                }
+                else {
+                    clickValid = true
+                    Toolkit.cur.callLater(200) |->|{
+                        if (clickValid) {
+                          frame.onSelectFile(item.node, false)
+                        }
+                        clickValid = false
+                    }
+                }
             }
         },
     }

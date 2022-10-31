@@ -27,7 +27,7 @@ class SyntaxModel : DefTEModel
         options = TEOptions()
         file = f
         rules = SyntaxRules.loadForFile(file)
-        parse
+        parse(file.in)
     }
     
     RichTextStyle findStyle(SyntaxType type) {
@@ -46,12 +46,11 @@ class SyntaxModel : DefTEModel
         return options.text
     }
     
-    Void parse() {
+    Void parse(InStream in) {
         if (rules == null) return
         styledLines = [,]
         
         SyntaxDoc? doc
-        in := file.in
         try
             doc = SyntaxParser(rules).with { it.tabsToSpaces = 0 }.parse(in)
         finally
@@ -81,6 +80,6 @@ class SyntaxModel : DefTEModel
     }
     
     protected override Void onTextChanged() {
-        parse
+        parse(text.in)
     }
 }

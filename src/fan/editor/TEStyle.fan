@@ -42,6 +42,10 @@ class TEStyle : WidgetStyle
         hasSelection = true
       }
     }
+    if (!hasSelection) {
+        selStart = -1
+        selEnd = -1
+    }
   }
   
   private Void getLineSelectInfo(Int i, Int lineSize) {
@@ -88,7 +92,7 @@ class TEStyle : WidgetStyle
     initSelectInfo(area, startLine, endLine)
 
     //echo("hasSelection:$hasSelection: $selectionStartLine($area.selectionStart), $selectionEndLine($area.selectionEnd)")
-    lineNumWidth := Math.log10(area.model.lineCount.toFloat).ceil.toInt * font.width("8") + font.height
+    lineNumWidth := 3.max(Math.log10(area.model.lineCount.toFloat).ceil.toInt) * font.width("8") + font.height
     area.textLeftSideOffset = lineNumWidth
 
     //draw line
@@ -137,7 +141,7 @@ class TEStyle : WidgetStyle
         Int x = area.caret.x
         //echo("x $x, offsetX:${area.offsetX} ${line[0..<xOffset]}")
         g.brush = Color.black
-        g.lineWidth = dpToPixel(6).toFloat
+        g.lineWidth = dpToPixel(4).toFloat
         g.drawLine(x, y, x, y + area.rowHeight)
       }
     }

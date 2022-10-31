@@ -47,7 +47,7 @@ class MainFrame
             editor := TextEditor {
                 model = SyntaxModel(f, text)
             }
-            tabView.addTab(f.name, editor, newTab)
+            tabView.addTab(f.uri.toStr, f.name, editor, newTab)
         }
         catch (Err e) {
             e.trace
