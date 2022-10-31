@@ -65,6 +65,7 @@ class MainFrame
           //inlineStyle = PaneStyle { background = Color(0x555555) }
           layout.height = Layout.matchParent
           top = VBox {
+            spacing = 0
             toolbar.menue,
             toolbar.makeToolBar,
           }

@@ -85,7 +85,7 @@ class TEStyle : WidgetStyle
     Int topOffset := area.offsetY - (startLine * area.rowHeight)
     Int endLine := ((area.offsetY+area.contentHeight).toFloat/area.rowHeight).ceil.toInt
     if (endLine >= area.model.lineCount) {
-      endLine = area.model.lineCount-1
+      endLine = area.model.lineCount
     }
     Int fontOffset := font.ascent + font.leading
 
@@ -117,10 +117,11 @@ class TEStyle : WidgetStyle
     //drawLineNum
     g.brush = Color.gray
     pos := -topOffset + top
+    x = left + dpToPixel(4)
     for (i := startLine; i< endLine; ++i)
     {
         text := (i+1).toStr
-        g.drawText(text, left, pos+fontOffset)
+        g.drawText(text, x, pos+fontOffset)
         pos += area.rowHeight
     }
 

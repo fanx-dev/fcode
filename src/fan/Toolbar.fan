@@ -57,6 +57,8 @@ class Toolbar {
   {
     HBox
     {
+      inlineStyle = PaneStyle { background = Color(0x444444); arc = 0 }
+      padding = Insets(0, 0, 8, 0)
       Button {
             tooltip = "$<Save>"
             it.text = ""

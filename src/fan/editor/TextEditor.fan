@@ -253,6 +253,7 @@ class TextEditor : ScrollPane
     if (e.type == MotionEvent.pressed)
     {
       //echo("e.x$e.x,e.y$e.y")
+      this.focus
       clearSelected
       offset := updateCaretByCoord(sx, sy) ?: model.charCount
       selectionStart = offset

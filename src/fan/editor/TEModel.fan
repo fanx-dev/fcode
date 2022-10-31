@@ -162,7 +162,7 @@ abstract class TEModel
 
 class DefTEModel : TEModel
 {
-  private Str[] lines := [,]
+  protected Str[] lines := [,]
 
   new make(Str text)
   {

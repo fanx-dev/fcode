@@ -23,7 +23,7 @@ class ProjTreeView
         layout.height = Layout.matchParent
         layout.width = 500
         padding = Insets(0, 15, 0, 0)
-        inlineStyle = ResizePaneStyle { background = Color(0x555555); stroke = true; outlineColor = Color.black }
+        inlineStyle = ResizePaneStyle { background = Color(0x888888); alpha = 100; stroke = true; outlineColor = Color.black }
         TreeView {
             model = ProjTreeModel()
             onSelected = |TreeItem item, Int clickType| {

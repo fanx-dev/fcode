@@ -27,7 +27,7 @@ class SyntaxModel : DefTEModel
         options = TEOptions()
         file = f
         rules = SyntaxRules.loadForFile(file)
-        parse(file.in)
+        parse(text.in)
     }
     
     RichTextStyle findStyle(SyntaxType type) {
