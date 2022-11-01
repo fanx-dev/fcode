@@ -139,7 +139,7 @@ abstract class TEModel
   **
   abstract Void modify(Int start, Int replaceLen, Str newText)
 
-  abstract Void modifyLine(Int lineIndex, Str? line, Bool add)
+  //abstract Void modifyLine(Int lineIndex, Str? line, Bool add)
 
   **
   ** Return the styled segments for the given zero based line index.
@@ -272,7 +272,7 @@ class DefTEModel : TEModel
     return font.width(lines[maxIndex])
   }*/
 
-  override Void modifyLine(Int lineIndex, Str? line, Bool add) {
+  Void modifyLine(Int lineIndex, Str? line, Bool add) {
     if (line == null) {
       lines.removeAt(lineIndex)
     }

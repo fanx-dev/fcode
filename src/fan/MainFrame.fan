@@ -18,6 +18,8 @@ class MainFrame
   Label bottomLabel
   TabView tabView
   
+  TEOptions options := TEOptions()
+  
   new make() {
     treeView = ProjTreeView(this)
     toolbar = Toolbar(this)
@@ -43,9 +45,8 @@ class MainFrame
     }
     else {
         try {
-            text := f.readAllStr
             editor := TextEditor {
-                model = SyntaxModel(f, text)
+                model = Doc(options, f)
             }
             tabView.addTab(f.uri.toStr, f.name, editor, newTab)
         }

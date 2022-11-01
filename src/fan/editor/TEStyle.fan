@@ -142,7 +142,7 @@ class TEStyle : WidgetStyle
         Int x = area.caret.x
         //echo("x $x, offsetX:${area.offsetX} ${line[0..<xOffset]}")
         g.brush = Color.black
-        g.lineWidth = dpToPixel(4).toFloat
+        g.lineWidth = dpToPixel(5).toFloat
         g.drawLine(x, y, x, y + area.rowHeight)
       }
     }
@@ -176,11 +176,16 @@ class TEStyle : WidgetStyle
                 if (i+2 < lineStyle.size) {
                     end = lineStyle[i+2]
                 }
-                fcode::RichTextStyle style := lineStyle[i+1]
-                g.brush = style.fg
                 str := text[pos..<end]
                 str = convertTab(str)
                 textw := g.font.width(str)
+                
+                fcode::RichTextStyle style := lineStyle[i+1]
+                if (style.bg != null) {
+                    g.brush = style.bg
+                    g.fillRect(left, top, textw, g.font.height)
+                }
+                g.brush = style.fg
                 //echo("$str: $textw")
                 g.drawText(str, left, top+fontOffset)
                 left += textw

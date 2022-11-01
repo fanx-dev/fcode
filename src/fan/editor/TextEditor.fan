@@ -171,7 +171,7 @@ class TextEditor : ScrollPane
     caret.x = font.width(model.line(row)[0..<column]) + textLeftSideOffset - offsetX
     //caret.offset = model.offsetAtLine(row) + column
     caret.visible = true
-    if (caret.y < 0 || caret.y > this.height) caret.visible = false
+    if (caret.y < 0 || caret.y+rowHeight > this.height) caret.visible = false
     if (caret.x < 0 || caret.x > this.width) caret.visible = false
     caret.offset = column
 
@@ -179,6 +179,8 @@ class TextEditor : ScrollPane
         caret.updateHost(updateAll)
     else
         caret.hide
+        
+    controller.checkBraceMatch(model.offsetAtLine(caret.lineIndex) + caret.offset)
   }
 
   **

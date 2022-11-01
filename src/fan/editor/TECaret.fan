@@ -31,7 +31,8 @@ class TECaret : Caret {
     if (host == null) return
     
     host.onTextChange = |Str text->Str| {
-        area.model.modifyLine(lineIndex, text, false)
+        //TODO
+        //area.model.modifyLine(lineIndex, text, false)
         area.repaint
         return text
     }

@@ -103,4 +103,44 @@ class TEController
       
     }
   }
+  
+//////////////////////////////////////////////////////////////////////////
+// Brace Matching
+//////////////////////////////////////////////////////////////////////////
+
+  Doc doc() { textEditor.model }
+
+  Void clearBraceMatch()
+  {
+    if (doc.bracketLine1 == null) return
+    oldLine1 := doc.bracketLine1
+    oldLine2 := doc.bracketLine2
+    doc.bracketLine1 = doc.bracketCol1 = null
+    doc.bracketLine2 = doc.bracketCol2 = null
+    textEditor.repaint
+  }
+
+  Void checkBraceMatch(Int offset)
+  {
+    // clear old brace match
+    clearBraceMatch
+
+    // get character before caret
+    lineIndex := doc.lineAtOffset(offset)
+    lineOffset := doc.offsetAtLine(lineIndex)
+    col := offset-lineOffset-1
+    if (lineOffset >= offset) return
+    ch := doc.line(lineIndex)[col]
+    if (!doc.rules.brackets.containsChar(ch)) return
+
+    // attempt to find match
+    matchOffset := doc.matchBracket(offset-1)
+    if (matchOffset == null) return
+    matchLine := doc.lineAtOffset(matchOffset)
+
+    // cache bracket locations doc and repaint
+    matchCol := matchOffset-doc.offsetAtLine(matchLine)
+    doc.setBracketMatch(lineIndex, col, matchLine, matchCol)
+    textEditor.repaint
+  }
 }
