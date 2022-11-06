@@ -14,14 +14,11 @@ using vaseGui
 ** Text
 **
 class TextEditor : ScrollPane
-{
-  **
-  ** Tab width measured in space characters.
-  **
-  Int tabSpacing := 4
+{  
+  Bool isReadonly = false
   
   ** offset for lineNumber
-  Int textLeftSideOffset := 0
+  internal Int textLeftSideOffset := 0
 
   **
   ** Convenience for 'model.text' (model must be installed).
@@ -52,7 +49,7 @@ class TextEditor : ScrollPane
   @Transient
   private Bool draging := false
   
-  TEController controller
+  TEController controller { private set }
 
   new make(|This|? f := null)
   {
@@ -98,7 +95,7 @@ class TextEditor : ScrollPane
   }
 
 
- **
+  **
   ** Backing data model of text document.
   ** The model cannot be changed once the widget has been
   ** been mounted into an open window.
@@ -110,6 +107,11 @@ class TextEditor : ScrollPane
 // Utils
 //////////////////////////////////////////////////////////////////////////
 
+  internal Void updateCaretByOffset(Int offset) {
+    position := model.posAtOffset(offset)
+    updateCaretAt(position.y, position.x)
+  }
+
   private Int? updateCaretByCoord(Int x, Int y) {
     Int absX := x + offsetX
     Int absY := y + offsetY
@@ -118,7 +120,7 @@ class TextEditor : ScrollPane
 
     Int lineIndex := absY / rowHeight
     if (lineIndex >= model.lineCount) return null
-    Int lineOffset := textIndexAtPos(model.line(lineIndex) , absX)
+    Int lineOffset := textIndexAtX(model.line(lineIndex) , absX)
 
     updateCaretAt(lineIndex, lineOffset)
 
@@ -127,13 +129,13 @@ class TextEditor : ScrollPane
 
   protected override Void doPaint(Rect clip, Graphics g) {
     //update caret pos before paint
-    if (caret.host != null) {
-      caretPos := caret.host.caretPos
-      if (caret.offset != caretPos) {
-        echo("reset caret: $caret.offset to $caretPos")
-        updateCaretAt(caret.lineIndex, caretPos, true, false)
-      }
-    }
+//    if (caret.host != null) {
+//      caretPos := caret.host.caretPos
+//      if (caret.offset != caretPos) {
+//        echo("reset caret: $caret.offset to $caretPos")
+//        updateCaretAt(caret.lineIndex, caretPos, true, false)
+//      }
+//    }
     super.doPaint(clip, g)
   }
 
@@ -187,7 +189,7 @@ class TextEditor : ScrollPane
   ** Map a coordinate on the widget to an offset in the text,
   ** or return null if no mapping at specified point.
   **
-  private Int? offsetAtPos(Int x, Int y)
+  private Int? offsetAtScreen(Int x, Int y)
   {
     Int absX := x + offsetX
     Int absY := y + offsetY
@@ -196,11 +198,11 @@ class TextEditor : ScrollPane
 
     Int lineIndex := absY / rowHeight
     if (lineIndex >= model.lineCount) return null
-    Int lineOffset := textIndexAtPos(model.line(lineIndex) , absX)
+    Int lineOffset := textIndexAtX(model.line(lineIndex) , absX)
     return model.offsetAtLine(lineIndex) + lineOffset
   }
 
-  private Int textIndexAtPos(Str text, Int w)
+  private Int textIndexAtX(Str text, Int w)
   {
     w = w - textLeftSideOffset
     Int size := text.size
@@ -227,9 +229,9 @@ class TextEditor : ScrollPane
   **
   ** Ensure the editor is scrolled such that the specified line is visible.
   **
-  Void showLine(Int lineIndex)
+  Void goto(Int lineIndex, Int lineOffset)
   {
-
+    updateCaretAt(lineIndex, lineOffset)
   }
   
   Bool hasSelected() {
@@ -269,7 +271,7 @@ class TextEditor : ScrollPane
     else if (draging)
     {
       if (e.type == MotionEvent.moved) {
-        selectionEnd = offsetAtPos(sx, sy) ?: model.charCount
+        selectionEnd = offsetAtScreen(sx, sy) ?: model.charCount
         this.repaint
         //echo("move: $selectionStart, $selectionEnd")
         e.consume
@@ -304,9 +306,9 @@ class TextEditor : ScrollPane
   }
 
 
-  override Void keyEvent(KeyEvent e)
-  {
-    controller.keyEvent(e)
-  }
+//  override Void keyEvent(KeyEvent e)
+//  {
+//    controller.keyEvent(e)
+//  }
 
 }

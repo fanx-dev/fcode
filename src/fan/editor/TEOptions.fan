@@ -26,7 +26,7 @@ const class TEOptions
   const Bool stripTrailingWhitespace := true
 
   ** Number of spaces to use for a tab.  Default is 2.
-  const Int tabSpacing := 2
+  const Int tabSpacing := 4
 
   ** If true, then all tabs to converted to space characters
   ** based on the configured `tabSpacing`.  The default is true.

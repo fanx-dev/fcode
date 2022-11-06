@@ -1,94 +1,184 @@
-class TextChange
+//
+// Copyright (c) 2012, Brian Frank
+// Licensed under the Academic Free License version 3.0
+//
+// History:
+//   22 Apr 12  Brian Frank  Creation
+//
+
+using vaseGraphics
+using syntax
+using concurrent
+
+**************************************************************************
+** ChangeStack
+**************************************************************************
+class ChangeStack
 {
-  ** Zero based offset of modification
-  Int startOffset
-
-  ** Zero based line number of modification
-  Int startLine
-
-  ** Old text which was replaced
-  Str? oldText
-
-  ** New text inserted
-  Str? newText
-
-  ** Number of newlines in `oldText` or zero if no newlines
-  ** This field will lazily be calcualted if null.
-  Int? oldNumNewlines
+  new make()
   {
-    get
-    {
-      if (&oldNumNewlines == null) &oldNumNewlines = numNewlines(oldText)
-      return &oldNumNewlines
-    }
+    this.changes = Change[,]
+    this.curChange = -1
   }
 
-  ** Number of newlines in `newText` or zero if no newlines.
-  ** This field will lazily be calcualted if null.
-  Int? newNumNewlines
+  ** Push a Change onto the stack.
+  Void push(Change change)
   {
-    get
+    // everything has been undone -- reset stack
+    if (curChange == -1)
     {
-      if (&newNumNewlines == null) &newNumNewlines = numNewlines(newText)
-      return &newNumNewlines
+      changes = [,]
+      changes.push(change)
     }
-  }
-  
-  public static Int numNewlines(Str? self)
-  {
-    if (self == null) return 0
-    numLines := 0;
-    len := self.size();
-    for (i:=0; i<len; ++i)
+    // at least one change has been undone -- truncate stack
+    else if (curChange < changes.size - 1)
     {
-      c := self[i];
-      if (c == '\n') numLines++;
-      else if (c == '\r')
+      changes = changes[0..curChange]
+      changes.push(change)
+    }
+    // nothing has been undone -- proceed 'normally'
+    else
+    {
+      if (change is SimpleChange)
       {
-        numLines++;
-        if (i+1<len && self[i+1] == '\n') i++;
+        simple := change as SimpleChange
+        // Maybe we can merge this change with the previous one.
+        // This represents an 'in-progress' edit that is inserting
+        // characters sequentially.
+        top := changes.peek as SimpleChange
+        if (isAtomicUndo(top, simple))
+        {
+          changes[-1] = SimpleChange(top.pos, top.oldText, top.newText+simple.newText)
+        }
+        else
+        {
+          changes.push(simple)
+        }
+      }
+      else
+      {
+        changes.push(change)
       }
     }
-    return numLines;
+    curChange = changes.size - 1
+    //dump
+  }
+  private Bool isAtomicUndo(SimpleChange? a, SimpleChange b)
+  {
+    if (a == null) return false
+    if (a.oldText.size > 0) return false
+    if (b.newText.size > 1) return false
+    return a.pos + a.newText.size == b.pos
   }
 
-  ** Zero based offset of where repaint should start, or if
-  ** null then `startOffset` is assumed.
-  Int? repaintStart
+  ** Undo a change.  Do nothing if all change have
+  ** already been undone.
+  Void onUndo(TextEditor editor)
+  {
+    if (curChange == -1) return
+    c := changes[curChange--]
+    c.undo(editor)
+    //dump
+  }
 
-  ** Zero based offset of where repaint should end,
-  ** or if null then 'newText.size' is assumed.
-  Int? repaintLen
+  ** Redo a change.  Do nothing if all change have
+  ** already been redone.
+  Void onRedo(TextEditor editor)
+  {
+    if (curChange == changes.size - 1) return
+    c := changes[++curChange]
+    c.execute(editor)
+  }
+  ** Debug dump of the ChangeStack.
+  **
+  internal Void dump(OutStream out := Env.cur.out)
+  {
+    out.printLine("")
+    out.printLine("==== ChangeStack.dump ===")
+    out.printLine("size=$changes.size")
+    out.printLine("curChange=$curChange")
+    changes.each |Change change| { out.printLine(change.toStr) }
+    out.printLine("")
+    out.flush
+  }
 
+  private Change[] changes
+  // this points to the last change that was executed
+  private Int curChange
+}
+
+**************************************************************************
+** Change
+**************************************************************************
+abstract const class Change
+{
+  abstract Void execute(TextEditor editor)
+  abstract Void undo(TextEditor editor)
+}
+
+**************************************************************************
+** SimpleChange
+**************************************************************************
+const class SimpleChange : Change
+{
+  new make(Int pos, Str oldText, Str newText)
+  {
+    this.pos     = pos
+    this.oldText = oldText
+    this.newText = newText
+  }
   override Str toStr()
   {
-    o := oldText ?: ""; if (o.size > 10) o = o[0..<10]+"..<"
-    n := newText ?: ""; if (n.size > 10) n = n[0..<10]+"..<"
-    return "startOffset=$startOffset startLine=$startLine " +
-           "newText=$n.toCode oldText=$o.toCode " +
-           "oldNumNewlines=$oldNumNewlines newNumNewlines=$newNumNewlines"
+    "[SimpleChange pos:$pos oldText:'$oldText' newText:'$newText']"
   }
 
-//////////////////////////////////////////////////////////////////////////
-// Undo/Redo Support
-//////////////////////////////////////////////////////////////////////////
+  const Int pos
+  const Str oldText
+  const Str newText
 
-  **
-  ** Undo this modification on the given widget.
-  **
-  Void undo(TextEditor widget)
+  override Void execute(TextEditor editor)
   {
-    //widget.modify(startOffset, newText.size, oldText)
-    //widget.select(startOffset + oldText.size, 0)
+    doc := editor.model
+    replaceText(editor, pos, oldText.size, newText)
   }
 
-  **
-  ** Redo this modification on the given widget.
-  **
-  Void redo(TextEditor widget)
+  override Void undo(TextEditor editor)
   {
-    //widget.modify(startOffset, oldText.size, newText)
-    //widget.select(startOffset + newText.size, 0)
+    doc := editor.model
+    replaceText(editor, pos, newText.size, oldText)
   }
 
+  ** replace whatever is in the given span with the given text
+  private Void replaceText(TextEditor editor, Int start, Int len, Str text)
+  {
+    editor.model.modify(start, len, text)
+    newPos := start + text.size
+    pos := editor.model.posAtOffset(newPos)
+    editor.goto(pos.y, pos.x)
+  }
 }
+
+**************************************************************************
+** BatchChange
+**************************************************************************
+const class BatchChange : Change
+{
+  new make(Change[] changes) { this.changes = changes }
+  const Change[] changes
+  override Str toStr()
+  {
+    "[BatchChange changes:$changes]"
+  }
+
+  override Void execute(TextEditor editor)
+  {
+    changes.each |c| { c.execute(editor) }
+  }
+
+  override Void undo(TextEditor editor)
+  {
+    changes.eachr |c| { c.undo(editor) }
+  }
+}
+
+

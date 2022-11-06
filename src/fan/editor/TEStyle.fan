@@ -10,18 +10,14 @@ using vaseGraphics
 using vaseWindow
 using vaseGui
 
-
-class TEStyle : WidgetStyle
-{
-  private Int selectionStartLine := -1
-  private Int selectionEndLine := -1
-  private Int selectionStartOffset := -1
-  private Int selectionEndOffset := -1
-  private Bool hasSelection := false
-  private Int selStart := -1
-  private Int selEnd := -1
+internal class SelectionInfo {
+  Int selectionStartLine := -1
+  Int selectionEndLine := -1
+  Int selectionStartOffset := -1
+  Int selectionEndOffset := -1
+  Bool hasSelection := false
   
-  private Void initSelectInfo(TextEditor area, Int startLine, Int endLine) {
+  internal Void init(TextEditor area, Int startLine = -1, Int endLine = Int.maxVal) {
     //get selection
     hasSelection = false
     if (area.hasSelected)
@@ -42,34 +38,41 @@ class TEStyle : WidgetStyle
         hasSelection = true
       }
     }
-    if (!hasSelection) {
-        selStart = -1
-        selEnd = -1
-    }
   }
+}
+
+class TEStyle : WidgetStyle
+{
+  private SelectionInfo selectionInfo := SelectionInfo()
+  private Int selStart := -1
+  private Int selEnd := -1
   
   private Void getLineSelectInfo(Int i, Int lineSize) {
-      if (hasSelection)
+      if (selectionInfo.hasSelection)
       {
-        if (i == selectionStartLine) {
-          selStart = selectionStartOffset
+        if (i == selectionInfo.selectionStartLine) {
+          selStart = selectionInfo.selectionStartOffset
         }
-        else if (i > selectionStartLine) {
+        else if (i > selectionInfo.selectionStartLine) {
           selStart = 0
         }
         else {
           selStart = -1
         }
 
-        if (i == selectionEndLine) {
-          selEnd = selectionEndOffset
+        if (i == selectionInfo.selectionEndLine) {
+          selEnd = selectionInfo.selectionEndOffset
         }
-        else if (i < selectionEndLine) {
+        else if (i < selectionInfo.selectionEndLine) {
           selEnd = lineSize
         }
         else {
           selEnd = -1
         }
+      }
+      else {
+        selStart = -1
+        selEnd = -1
       }
   }
     
@@ -89,7 +92,7 @@ class TEStyle : WidgetStyle
     }
     Int fontOffset := font.ascent + font.leading
 
-    initSelectInfo(area, startLine, endLine)
+    selectionInfo.init(area, startLine, endLine)
 
     //echo("hasSelection:$hasSelection: $selectionStartLine($area.selectionStart), $selectionEndLine($area.selectionEnd)")
     lineNumWidth := 3.max(Math.log10(area.model.lineCount.toFloat).ceil.toInt) * font.width("8") + font.height

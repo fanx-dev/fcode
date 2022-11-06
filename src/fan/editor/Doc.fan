@@ -66,7 +66,7 @@ class Doc : TEModel
   override Point posAtOffset(Int offset) {
     lineIndex := lineAtOffset(offset)
     off := offset - lines[lineIndex].offset
-    return Point(lineIndex, off)
+    return Point(off, lineIndex)
   }
 
   override Void modify(Int startOffset, Int len, Str newText)
@@ -106,16 +106,7 @@ class Doc : TEModel
     repaintToEnd := samplesBefore != samplesAfter
 
     // fire modification event
-    tc := TextChange
-    {
-      it.startOffset    = startOffset
-      it.startLine      = startLineIndex
-      it.oldText        = oldText
-      it.newText        = newText
-      it.oldNumNewlines = oldText.numNewlines
-      it.newNumNewlines = newLines.size - 1
-      it.repaintLen     = repaintToEnd ? size-startOffset : null
-    }
+    tc := SimpleChange(startOffset, oldText, newText)
     onModify.fire(Event { data = tc })
   }
 

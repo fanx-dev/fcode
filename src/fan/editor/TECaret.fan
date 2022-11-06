@@ -13,16 +13,16 @@ using vaseGui
 class TECaret : Caret {
 
   //pixcel position
-  Int x
-  Int y
+  internal Int x
+  internal Int y
 
   Int lineIndex := 0
 
   TextEditor area
 
-  new make(TextEditor area) { this.area = area }
-
   protected TextInput? host
+  
+  new make(TextEditor area) { this.area = area }
   
   private Void init() {
     if (host != null) return
@@ -30,14 +30,21 @@ class TECaret : Caret {
     host = area.getRootView?.host?.textInput(inputType)
     if (host == null) return
     
-    host.onTextChange = |Str text->Str| {
-        //TODO
-        //area.model.modifyLine(lineIndex, text, false)
-        area.repaint
-        return text
-    }
-    host.onKeyPress = |e| {
-        area.keyEvent(e)
+//    host.onTextChange = |Str text->Str| {
+//        if (!invalidChagneEvent && text != this.text) {
+//            area.controller.modify(area.model.offsetAtLine(lineIndex), area.model.line(lineIndex).size, text)
+//            area.repaint
+//        }
+//        return text
+//    }
+
+    host.onKeyPress = |KeyEvent e| {
+        area.controller.keyEvent(e)
+        if (e.type == KeyEvent.typed) {
+            Toolkit.cur.callLater(0) |->| {
+                host.setText("")
+            }
+        }
     }
   }
 
@@ -50,6 +57,7 @@ class TECaret : Caret {
       host.setPos(c.x.toInt+x, c.y.toInt+y, 1, area.rowHeight)
       return
     }
+    
 
     host.setType(0, true)
 
@@ -57,12 +65,13 @@ class TECaret : Caret {
     host.setPos(c.x.toInt+x, c.y.toInt+y, 1, area.rowHeight)
 
     host.setStyle(area.font, Color.black, Color.white)
-    host.setText(text)
-    host.select(this.offset, this.offset)
+    host.setText("")
+    //host.select(this.offset, this.offset)
     host.focus
+    
   }
   
-  private Str text() { area.model.line(lineIndex) }
+  //private Str text() { area.model.line(lineIndex) }
   
   Void hide() {
     if (host != null) {

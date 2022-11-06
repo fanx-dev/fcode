@@ -53,6 +53,13 @@ abstract class TEModel
 
 
   abstract Point posAtOffset(Int offset)
+  
+  
+  Point offsetToPos(Int offset) { posAtOffset(offset) }
+  
+  Int posToOffset(Int lineIndex, Int lineOffset) {
+    return offsetAtLine(lineIndex) + lineOffset
+  }
 
   **
   ** Return the zero based line index at the given character offset.
