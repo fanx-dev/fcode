@@ -146,6 +146,7 @@ class TEController
         }
         //editor.updateCaretAt(caret.lineIndex+1, 0)
         consume(e)
+        editor.relayout
         return true
       case Keys.backspace:
         if (clearSelection(e)) return true
@@ -210,14 +211,17 @@ class TEController
           editor.updateCaretByOffset(pos+text.size)
         }
         consume(e)
+        editor.relayout
         return true
       case Keys.undo:
         changeStack.onUndo(editor);
         consume(e)
+        editor.relayout
         return true
       case Keys.redo:
         changeStack.onRedo(editor);
         consume(e)
+        editor.relayout
         return true
       case Keys.indent:
         onTab(true);

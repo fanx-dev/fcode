@@ -21,10 +21,23 @@ class TECaret : Caret {
   TextEditor area
 
   protected TextInput? host
+
+  private Bool isActive := false
   
   new make(TextEditor area) { this.area = area }
+
+  Void open() {
+    isActive = true
+    init
+  }
+
+  Void close() {
+    isActive = false
+    hide
+  }
   
   private Void init() {
+    if (!isActive) return
     if (host != null) return
     Int inputType = 1
     host = area.getRootView?.host?.textInput(inputType)

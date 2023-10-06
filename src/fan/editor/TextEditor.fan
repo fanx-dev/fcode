@@ -54,7 +54,7 @@ class TextEditor : ScrollPane
   new make(|This|? f := null)
   {
     this.inlineStyle = TEStyle {
-        fontInfo.name = "Monospaced"
+        fontInfo.name = "Consolas"
         fontInfo.size = 36
     }
     
@@ -67,8 +67,11 @@ class TextEditor : ScrollPane
     onFocusChanged.add |e| {
       focused := e.data
       if (!focused) {
-        caret.hide
+        caret.close
         repaint
+      }
+      else {
+        caret.open
       }
     }
     
@@ -76,7 +79,7 @@ class TextEditor : ScrollPane
   }
 
   protected override Size prefContentSize(Int hintsWidth := -1, Int hintsHeight := -1) {
-    Int h := model.lineCount * rowHeight
+    Int h := model.lineCount * rowHeight + viewportHeight.toInt - rowHeight
 
     Int max := 0
     Int maxIndex := 0
